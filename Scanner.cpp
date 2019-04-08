@@ -21,12 +21,14 @@ Scanner::Scanner(int argc, char **argv) : files(argc, argv){
 tokens Scanner::nextToken()
 {
     tokens token = getProtoToken();
+    token = routeToken(token);
     return token;
 }
 
 //This function is the first filter to remove the white space and comments.
 tokens Scanner::getProtoToken()
 {
+    //cBuff can be refactored to use STRING.at();
     int begin = 0;
     int end = 0;
     tokens proto;
@@ -34,7 +36,8 @@ tokens Scanner::getProtoToken()
     int i = 0;
     if(cBuff[i] == ' ')
     {
-        while (cBuff[i] == ' ') {
+        while (cBuff[i] == ' ')
+        {
             i++;
             begin = i;
         }
@@ -76,20 +79,54 @@ tokens Scanner::getProtoToken()
 }
 tokens Scanner::routeToken(tokens token)
 {
-switch (token.t_type){
-    case id_tk :
-        return getKeyWordToken(token);
-    case int_tk :
-        return verifyInt(token);
-    case op_delim_tk :
-        return token;
-    case eof_tk :
-        return token;
-    default:
-        std::cerr << "Invalid token" << token.instance << " at line " << token.line << std::endl;
-        exit(EXIT_FAILURE);
-    }
+    switch (token.t_type)
+    {
+        case id_tk :
+            return verifyId(token);
+        case int_tk :
+            return verifyInt(token);
+        case op_delim_tk :
+            return token;
+        case eof_tk :
+            return token;
+        default:
+            std::cerr << "Invalid token" << token.instance << " at line " << token.line << std::endl;
+            exit(EXIT_FAILURE);
+        }
 }
 tokens Scanner::getKeyWordToken(tokens token) {}
-tokens Scanner::verifyInt(tokens token){}
+tokens Scanner::verifyInt(tokens token)
+{
+    int i = 0;
+    while(i < token.instance.size())
+    {
+        if(!isnumber(token.instance.at(i))) //if character i is not an integer.
+        {
+            std::cerr << "Invalid integer representation " << token.instance << " at line " << token.line << std::endl;
+            exit(EXIT_FAILURE);
+        }
+    }
+    return token;
+}
+tokens Scanner::verifyId(tokens token)
+{
+    int i = 0;
+    if(!islower(token.instance.at(i)))
+    { //not lower case
+        std::cerr << "Token " << token.instance << " at line " << token.line
+        << " is an invalid must start with lowercase letter" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    i++;
+    while(i < token.instance.size())
+    {
+        if(!isalnum(token.instance.at(i))) //if character at i is not alphanumeric
+        {
+            std::cerr << "Identifier " << token.instance << " at line " << token.line << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        i++;
+    }
+    return getKeyWordToken(token);
+}
 

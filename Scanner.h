@@ -25,5 +25,6 @@ private:
     tokens routeToken(tokens token);
     tokens getKeyWordToken(tokens token);
     tokens verifyInt(tokens token);
+    tokens verifyId(tokens token);
 };
 #endif //P1_SCANNER_H
