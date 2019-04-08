@@ -140,7 +140,7 @@ tokens Scanner::verifyInt(tokens token)
     int i = 0;
     while(i < token.instance.size())
     {
-        if(!isnumber(token.instance.at(i))) //if character i is not an integer.
+        if(!isdigit(token.instance.at(i))) //if character i is not an integer.
         {
             std::cerr << "Scanner Error: Invalid integer representation " << token.instance << " at line " << token.line << std::endl;
             exit(EXIT_FAILURE);

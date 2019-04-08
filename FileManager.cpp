@@ -11,15 +11,16 @@ FileManager::FileManager(int argc, char **argv)
     if(argc < 2)
     {
         fileName = "out";
-        inputFileName = "./tempFileXXXXXX";
-        inputFile.open(inputFileName, std::fstream::ate); // ate = At The End, meaning write to end of the file.
+        inputFile.open(fileName, std::fstream::ate); // ate = At The End, meaning write to end of the file.
 
-        getline(std::cin, keyBuffer);
+        std::cin >> keyBuffer;
         inputFile << keyBuffer;
+        inputFile.close();
         errorCheckHelper();
         tempFile = true;
         if(isEmpty(inputFile)){
             std::cerr << "Empty input stream" << std::endl;
+            exit(EXIT_FAILURE);
         }
     }
     else
