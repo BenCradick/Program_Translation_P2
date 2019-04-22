@@ -8,53 +8,48 @@
 
 //Helper functions prototypes for "Filter2" in suggestions
 
-tokens iKeyWord(tokens token);
-tokens vKeyWord(tokens token);
-tokens rKeyWord(tokens token);
-tokens sKeyWord(tokens token);
-tokens pKeyWord(tokens token);
-tokens cKeyWord(tokens token);
-tokens tKeyWord(tokens token);
-tokens lKeyWord(tokens token);
+
+
+
+
+
+
 
 
 Scanner::Scanner(int argc, char **argv) : files(argc, argv){
     line = 1;
     std::getline(files.inputFile, buffer);
-    char delimArray[21] = {'=',  '<',  '>',  ':',   '+',  '-',  '*',  '/',   '%',  '.', '(',  ')',
-                           ',', '{', '}',  ';', '[',  ']', ' ', '\n', '&'};
-    for(int i = 0; i <= 21; i++)
+    char delimArray[20] = {'=',  '<',  '>',  ':',   '+',  '-',  '*',  '/',   '%',  '.', '(',  ')',
+                           ',', '{', '}',  ';', '[',  ']', '&'};
+    for(int i = 0; i <= 19; i++)
     {
         delims.insert(delimArray[i]);
     }
 
 }
-tokens Scanner::nextToken()
+std::list<tokens> Scanner::nextToken()
 {
+    std::list<tokens> token_list;
     tokens token = getProtoToken();
-    token = routeToken(token);
-    return token;
+
+    token_list.splice(token_list.end(), routeToken(token));
+    return token_list;
 }
 
 //This function is the first filter to remove the white space and comments.
 tokens Scanner::getProtoToken()
 {
     //cBuff can be refactored to use STRING.at();
-    int begin = 0;
-    int end = 0;
+    size_t begin = 0;
+    size_t end = 0;
     tokens proto;
     const char* cBuff = buffer.c_str();
-    int i = 0;
-    if(cBuff[i] == ' ')
-    {
-        while (cBuff[i] == ' ')
-        {
-            i++;
-            begin = i;
-        }
-        buffer.erase(0, (unsigned long) begin);
-        return getProtoToken();
+    size_t i = 0;
+    size_t comment_loc;
+    if((comment_loc = buffer.find('&')) != std::string::npos){
+        buffer.erase(buffer.begin() + comment_loc, buffer.end());
     }
+    buffer.erase(remove(buffer.begin(), buffer.end(), ' '), buffer.end());
     if(files.inputFile.eof() && buffer.empty())
     {
         proto.t_type = eof_tk;
@@ -63,39 +58,40 @@ tokens Scanner::getProtoToken()
         return proto;
     }
     // ignore any lines who's remaining content is whitespace or a comment.
-    if(cBuff[i] == '&' || buffer.empty())
+    if(buffer.empty())
     {
         std::getline(files.inputFile, buffer);
         line++;
         return getProtoToken();
     }
-    while(delims.find(cBuff[i]) == delims.end())
-    {
-        end = i;
-        i++;
+    try {
+        while (delims.find(buffer.at(i)) == delims.end()) {
+
+            end = i++;
+        }
+    }catch(const std::out_of_range& e){
+        end++;
     }
-    if(delims.find(buffer.at(0)) != delims.end()){
-        proto.t_type = operator_tk;
-    }
-    else {
-        proto.t_type = id_tk;
-    }
+
     if(begin == end)
     {
-        proto.instance = cBuff[begin];
-        buffer.erase(0, (unsigned long)end + 1);
+        proto.instance = buffer.at(begin);
+        buffer.erase(buffer.begin());
     }
     else
     {
-        proto.instance = buffer.substr((unsigned long)begin,(unsigned long)(end + 1 - begin));
-        buffer.erase(0, (unsigned long) end + 1);
+        proto.instance = buffer.substr(begin, end + 1);
+        buffer.erase(0, end + 1);
     }
+    determineTokenType(&proto);
     proto.line = line;
 
     return proto;
 }
-tokens Scanner::routeToken(tokens token)
+std::list<tokens> Scanner::routeToken(tokens token)
 {
+    std::list<tokens> temp; // "token" list of tokens
+    temp.push_back(token); // here because compiler didnt like this in the switch statement.
     switch (token.t_type)
     {
         case id_tk :
@@ -103,15 +99,15 @@ tokens Scanner::routeToken(tokens token)
         case int_tk :
             return verifyInt(token);
         case operator_tk :
-            return token;
+            return determineOperatorToken(token);
         case eof_tk :
-            return token;
+            return temp;
         default:
             std::cerr << "Scanner Error: Invalid token" << token.instance << " at line " << token.line << std::endl;
             exit(EXIT_FAILURE);
-        }
+    }
 }
-tokens Scanner::getKeyWordToken(tokens token)
+std::list<tokens> Scanner::Scanner::getKeyWordToken(tokens token)
 {
     switch (token.instance.at(0))
     {
@@ -132,12 +128,14 @@ tokens Scanner::getKeyWordToken(tokens token)
         case 'l' :
             return lKeyWord(token);
         default:
-            return token;
+            std::list<tokens> temp; // "token" list of tokens
+            temp.push_back(token);
+            return temp;
     }
 }
-tokens Scanner::verifyInt(tokens token)
+std::list<tokens> Scanner::verifyInt(tokens token)
 {
-    int i = 0;
+    unsigned int i = 0;
     while(i < token.instance.size())
     {
         if(!isdigit(token.instance.at(i))) //if character i is not an integer.
@@ -146,11 +144,14 @@ tokens Scanner::verifyInt(tokens token)
             exit(EXIT_FAILURE);
         }
     }
-    return token;
+    std::list<tokens> temp; // "token" list of tokens
+    temp.push_back(token);
+    return temp;
+
 }
-tokens Scanner::verifyId(tokens token)
+std::list<tokens> Scanner::verifyId(tokens token)
 {
-    int i = 0;
+    unsigned int i = 0;
     if(!islower(token.instance.at(i)))
     { //not lower case
         std::cerr << "Scanner Error: Token " << token.instance << " at line " << token.line
@@ -169,90 +170,310 @@ tokens Scanner::verifyId(tokens token)
     }
     return getKeyWordToken(token);
 }
-// [char]KeyWord helper functions, acts as filter2
-tokens iKeyWord(tokens token)
+// [charScanner::]KeyWord helper functions, acts as filter2
+std::list<tokens> Scanner::iKeyWord(tokens token)
 {
-    if(token.instance == "int")
+    // parent list because i'll call functions recursively to build a list of all tokens that were generated from this proto token
+    std::list<tokens> parent;
+    if(token.instance.substr(0, 3) == "int")
     {
         token.t_type = int_tk;
+        if(token.instance.length() == 3){
+            parent.push_back(token);
+            return parent;
+        }
+        tokens next;
+        next.instance = token.instance.substr(3, std::string::npos);
+        next.line = token.line;
+        token.instance = "int";
+        determineTokenType(&next);
+        parent.push_back(token);
+        parent.splice(parent.end(), routeToken(next)); //Route token recursion means the remainder of the token gets scanned independently.
     }
-    else if(token.instance == "iter")
+    else if(token.instance.substr(0, 4) == "iter")
     {
         token.t_type = iter_tk;
+        if(token.instance.length() == 4){
+            parent.push_back(token);
+            return parent;
+        }
+        tokens next;
+        next.instance = token.instance.substr(4, std::string::npos);
+        next.line = token.line;
+        token.instance = "iter";
+        parent.push_back(token);
+        determineTokenType(&next);
+        parent.splice(parent.end(), routeToken(next));
+    }
+    else{
+        parent.push_back(token);
     }
 
-    return token;
-
-
+    return parent;
 }
-tokens vKeyWord(tokens token)
+std::list<tokens> Scanner::vKeyWord(tokens token)
 {
-    if(token.instance == "void")
+    std::list<tokens> parent;
+    if(token.instance.substr(0, 4) == "void")
     {
         token.t_type = void_tk;
+        if(token.instance.length() == 4){
+            parent.push_back(token);
+            return parent;
+        }
+        tokens next;
+        next.instance = token.instance.substr(4, std::string::npos);
+        next.line = token.line;
+        determineTokenType(&next);
+        token.instance = "void";
+        parent.push_back(token);
+        parent.splice(parent.end(), routeToken(next)); //Route token recursion means the remainder of the token gets scanned independently.
     }
-    else if(token.instance == "var")
+    else if(token.instance.substr(0, 3) == "var")
     {
         token.t_type = var_tk;
+        if(token.instance.length() == 3){
+            parent.push_back(token);
+            return parent;
+        }
+        tokens next;
+        next.instance = token.instance.substr(3, std::string::npos);
+        next.line = token.line;
+        determineTokenType(&next);
+        token.instance = "var";
+        parent.push_back(token);
+        parent.splice(parent.end(), routeToken(next)); //Route token recursion means the remainder of the token gets scanned independently.
     }
-    return token;
+    else{
+        parent.push_back(token);
+    }
+    return parent;
 
 }
-tokens rKeyWord(tokens token)
+std::list<tokens> Scanner::rKeyWord(tokens token)
 {
-    if(token.instance == "return")
+    std::list<tokens> parent;
+    if(token.instance.substr(0, 6) == "return")
     {
         token.t_type = return_tk;
+        if(token.instance.length() == 6){
+            parent.push_back(token);
+            return parent;
+        }
+        tokens next;
+        next.instance = token.instance.substr(6, std::string::npos);
+        next.line = token.line;
+        determineTokenType(&next);
+        token.instance = "return";
+        parent.push_back(token);
+        parent.splice(parent.end(), routeToken(next)); //Route token recursion means the remainder of the token gets scanned independently.
     }
-    return token;
+    else{
+        parent.push_back(token);
+    }
+    return parent;
 
 }
-tokens sKeyWord(tokens token)
+std::list<tokens> Scanner::sKeyWord(tokens token)
 {
-    if(token.instance == "scan")
+    std::list<tokens> parent;
+    if(token.instance.substr(0, 4) == "scan")
     {
         token.t_type = scan_tk;
+        if(token.instance.length() == 4){
+            parent.push_back(token);
+            return parent;
+        }
+        tokens next;
+        next.instance = token.instance.substr(4, std::string::npos);
+        next.line = token.line;
+        determineTokenType(&next);
+        token.instance = "scan";
+        parent.push_back(token);
+        parent.splice(parent.end(), routeToken(next)); //Route token recursion means the remainder of the token gets scanned independently.
+    }
+    else{
+        parent.push_back(token);
     }
 
-    return token;
+    return parent;
 
 }
-tokens pKeyWord(tokens token)
+std::list<tokens> Scanner::pKeyWord(tokens token)
 {
-    if(token.instance == "print")
+    std::list<tokens> parent;
+    if(token.instance.substr(0, 5) == "print")
     {
         token.t_type = print_tk;
+        if(token.instance.length() == 5){
+            parent.push_back(token);
+            return parent;
+        }
+        tokens next;
+        next.instance = token.instance.substr(5, std::string::npos);
+        next.line = token.line;
+        determineTokenType(&next);
+        token.instance = "print";
+        parent.push_back(token);
+        parent.splice(parent.end(), routeToken(next)); //Route token recursion means the remainder of the token gets scanned independently.
     }
-    else if(token.instance == "program")
+    else if(token.instance.substr(0, 7) == "program")
     {
         token.t_type = program_tk;
+        if(token.instance.length() == 7){
+            parent.push_back(token);
+            return parent;
+        }
+        tokens next;
+        next.instance = token.instance.substr(7, std::string::npos);
+        next.line = token.line;
+        determineTokenType(&next);
+        token.instance = "program";
+        parent.push_back(token);
+        parent.splice(parent.end(), routeToken(next));
     }
-    return token;
+    else{
+        parent.push_back(token);
+    }
+    return parent;
 
 }
-tokens cKeyWord(tokens token)
+std::list<tokens> Scanner::cKeyWord(tokens token)
 {
-    if(token.instance == "cond")
+    std::list<tokens> parent;
+    if(token.instance.substr(0, 4) == "cond")
     {
         token.t_type = cond_tk;
+        if(token.instance.length() == 4){
+            parent.push_back(token);
+            return parent;
+        }
+        tokens next;
+        next.instance = token.instance.substr(4, std::string::npos);
+        next.line = token.line;
+        determineTokenType(&next);
+        token.instance = "cond";
+        parent.push_back(token);
+        parent.splice(parent.end(), routeToken(next));
     }
-    return token;
+    else{
+        parent.push_back(token);
+    }
+    return parent;
 }
-tokens tKeyWord(tokens token)
+std::list<tokens> Scanner::tKeyWord(tokens token)
 {
-    if(token.instance == "then")
+    std::list<tokens> parent;
+    if(token.instance.substr(0, 4) == "then")
     {
-        token.t_type= then_tk;
+        token.t_type= then_tk;if(token.instance.length() == 4){
+            parent.push_back(token);
+            return parent;
+        }
+        tokens next;
+        next.instance = token.instance.substr(4, std::string::npos);
+        next.line = token.line;
+        determineTokenType(&next);
+        token.instance = "then";
+        parent.push_back(token);
+        parent.splice(parent.end(), routeToken(next));
+    }
+    else{
+        parent.push_back(token);
     }
 
-    return token;
+    return parent;
 }
-tokens lKeyWord(tokens token)
+std::list<tokens> Scanner::lKeyWord(tokens token)
 {
-    if(token.instance == "let")
+    std::list<tokens> parent;
+    if(token.instance.substr(0, 3) == "let")
     {
         token.t_type = let_tk;
+        if(token.instance.length() == 3){
+            parent.push_back(token);
+            return parent;
+        }
+        tokens next;
+        next.instance = token.instance.substr(3, std::string::npos);
+        next.line = token.line;
+        determineTokenType(&next);
+        token.instance = "let";
+        parent.push_back(token);
+        parent.splice(parent.end(), routeToken(next));
 
     }
-    return token;
+    else{
+        parent.push_back(token);
+    }
+    return parent;
+}
+void Scanner::determineTokenType(tokens *token){
+    if(delims.find(token->instance.at(0)) != delims.end()){
+        token->t_type = operator_tk;
+    }
+    else if(isdigit(token->instance.at(0))) {
+        token->t_type = int_tk;
+    }
+    else{
+        token->t_type = id_tk;
+    }
+}
+std::list<tokens> Scanner::determineOperatorToken(tokens token){
+    std::list<tokens> op_token;
+    switch(token.instance.at(0)){
+        case '=' :
+            token.t_type = equals_tk;
+            break;
+        case '<' :
+            token.t_type = less_than_tk;
+            break;
+        case '>' :
+            token.t_type = greater_than_tk;
+            break;
+        case ':' :
+            token.t_type = colon_tk;
+            break;
+        case '+' :
+            token.t_type = addition_tk;
+            break;
+        case '-' :
+            token.t_type = subtraction_tk;
+            break;
+        case '*' :
+            token.t_type = multiplication_tk;
+            break;
+        case '/' :
+            token.t_type = division_tk;
+            break;
+        case '%' :
+            token.t_type = percent_tk;
+            break;
+        case '.' :
+            token.t_type = period_tk;
+            break;
+        case '(' :
+            token.t_type = left_parenthesis_tk;
+            break;
+        case ')' :
+            token.t_type = right_parenthesis_tk;
+            break;
+        case '{' :
+            token.t_type = left_curly_bracket_tk;
+            break;
+        case '}' :
+            token.t_type = right_parenthesis_tk;
+            break;
+        case '[' :
+            token.t_type = left_bracket_tk;
+            break;
+        case ']' :
+            token.t_type = right_bracket_tk;
+            break;
+        default:
+            std::cerr << "Scanner::determineOperatorToken: unknown character: " << token.instance.at(0) << std::endl;
+            exit(EXIT_FAILURE);
+    }
+    op_token.push_back(token);
+    return op_token;
 }

@@ -20,8 +20,9 @@ public:
     std::string fileName;
     std::string inputFileName;
 
-    std::string keyBuffer;
     bool tempFile = false;
+
+
 };
 
 

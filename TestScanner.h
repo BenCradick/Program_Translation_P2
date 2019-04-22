@@ -13,8 +13,7 @@ public:
     void test();
 
 private:
-    std::string tokenNames[14] = {"iter_tk", "void_tk", "var_tk", "return_tk", "scan_tk", "print_tk", "program_tk",
-                                  "cond_tk", "then_tk", "let_tk", "int_tk",  "id_tk",  "operator_tk",  "eof_tk" };
+
     Scanner scanner;
 
 };

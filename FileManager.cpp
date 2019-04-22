@@ -10,12 +10,16 @@ FileManager::FileManager(int argc, char **argv)
 {
     if(argc < 2)
     {
-        fileName = "out";
-        inputFile.open(fileName, std::fstream::ate); // ate = At The End, meaning write to end of the file.
+        fileName = "out.sp19";
+        inputFile.open(fileName, std::fstream::ate | std::fstream::out | std::fstream::in | std::fstream::app); // ate = At The End, meaning write to end of the file.
 
+
+        std::string keyBuffer;
         std::cin >> keyBuffer;
         inputFile << keyBuffer;
+
         inputFile.close();
+        inputFile.open(fileName, std::fstream::in);
         errorCheckHelper();
         tempFile = true;
         if(isEmpty(inputFile)){
