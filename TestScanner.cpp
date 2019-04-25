@@ -9,16 +9,8 @@ void TestScanner::test()
 {
     tokens token;
     do {
-        std::list<tokens> token_list;
-        token_list = scanner.nextToken();
-        do {
-            token = *token_list.begin();
-            printf("%-25s%-20s%-6d\n", scanner.tokenNames[token.t_type].c_str(), token.instance.c_str(), token.line);
-            if(token.t_type == eof_tk)
-            {
-                break;
-            }
-            token_list.pop_front();
-        }while(!token_list.empty());
+        token = scanner.nextToken();
+
+        printf("%-25s%-20s%-6d\n", scanner.tokenNames[token.t_type].c_str(), token.instance.c_str(), token.line);
     }while(token.t_type != eof_tk);
 }

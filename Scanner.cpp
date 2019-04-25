@@ -27,13 +27,20 @@ Scanner::Scanner(int argc, char **argv) : files(argc, argv){
     }
 
 }
-std::list<tokens> Scanner::nextToken()
+tokens Scanner::nextToken()
 {
-    std::list<tokens> token_list;
-    tokens token = getProtoToken();
+    tokens token;
+    if(token_list.empty()) {
 
-    token_list.splice(token_list.end(), routeToken(token));
-    return token_list;
+
+         token = getProtoToken();
+
+        token_list.splice(token_list.end(), routeToken(token));
+    }
+    token = *token_list.begin();
+    token_list.pop_front();
+
+    return token;
 }
 
 //This function is the first filter to remove the white space and comments.
