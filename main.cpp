@@ -1,9 +1,8 @@
 #include <iostream>
-#include "TestScanner.h"
+#include "parser.h"
 int main(int argc, char** argv) {
 
-    TestScanner testScanner(argc, argv);
-    testScanner.test();
+    Parser parser(argc, argv);
 
     return 0;
 }

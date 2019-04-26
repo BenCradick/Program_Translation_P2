@@ -150,6 +150,7 @@ std::list<tokens> Scanner::verifyInt(tokens token)
             std::cerr << "Scanner Error: Invalid integer representation " << token.instance << " at line " << token.line << std::endl;
             exit(EXIT_FAILURE);
         }
+        i++;
     }
     std::list<tokens> temp; // "token" list of tokens
     temp.push_back(token);
@@ -476,6 +477,9 @@ std::list<tokens> Scanner::determineOperatorToken(tokens token){
             break;
         case ']' :
             token.t_type = right_bracket_tk;
+            break;
+        case ';' :
+            token.t_type = semi_colon_tk;
             break;
         default:
             std::cerr << "Scanner::determineOperatorToken: unknown character: " << token.instance.at(0) << std::endl;

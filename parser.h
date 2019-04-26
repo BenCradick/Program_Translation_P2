@@ -11,9 +11,10 @@
 
 //variables that are local to this set of functions
 struct Parser {
-    explicit Parser(int argc, char** argv) : scanner(argc, argv){}
+    explicit Parser(int argc, char** argv);
     tokens token;
     Scanner scanner;
+    Node* root;
     const std::string tokenNames[31] = {"iter_tk", "void_tk", "var_tk", "return_tk", "scan_tk", "print_tk", "program_tk",
                                         "cond_tk", "then_tk", "let_tk",  "operator_tk",  "eof_tk", "equals_tk",
                                         "less_than_tk", "greater_than_tk", "colon_tk", "addition_tk","subtraction_tk",
