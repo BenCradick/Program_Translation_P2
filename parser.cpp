@@ -22,6 +22,7 @@ Node* Parser::program(int depth){
     if(token.t_type == var_tk){
         token = scanner.nextToken();
         node->children = (Node**)malloc(sizeof(Node*) * 2);
+        node->child_count = 2;
         node->children[0] = vars(depth);
         node->children[1] = block(depth);
 
@@ -30,6 +31,7 @@ Node* Parser::program(int depth){
     else if(token.t_type == void_tk) {
         //token = scanner.nextToken();
         node->children = (Node**)malloc(sizeof(Node*));
+        node->child_count = 1;
         node->children[0] = block(depth);
 
     }
@@ -48,6 +50,7 @@ Node* Parser::block(int depth){
         token = scanner.nextToken();
         if(token.t_type == var_tk){
             node->children = (Node**)malloc(sizeof(Node*) * 2);
+            node->child_count = 2;
             token = scanner.nextToken();
             node->children[0] = vars(depth);
             //token = scanner.nextToken();
@@ -55,6 +58,7 @@ Node* Parser::block(int depth){
         }
         else{
             node->children = (Node**)malloc(sizeof(Node*));
+            node->child_count = 1;
             node->children[0] = stats(depth);
         }
         //token = scanner.nextToken();
@@ -78,6 +82,7 @@ Node* Parser::vars(int depth){
     //token = scanner.nextToken();
     if(token.t_type == id_tk){
         node->token = (tokens**)malloc(sizeof(tokens*)*2);
+        node->token_count = 2;
         node->token[0] = &token;
         token = scanner.nextToken();
         if(token.t_type == colon_tk){
@@ -85,6 +90,7 @@ Node* Parser::vars(int depth){
             if (token.t_type == int_tk){
                 node->token[1] = &token;
                 node->children = (Node**)malloc(sizeof(Node*));
+                node->child_count = 1;
                 token = scanner.nextToken();
                 if(token.t_type == var_tk) {
                     token = scanner.nextToken();
@@ -107,6 +113,7 @@ Node* Parser::expr(int depth){
     Node* node = new Node(depth, "<expr>");
     depth++;
     node->children = (Node**)malloc(sizeof(Node*)*2);
+    node->child_count = 2;
     node->children[0] = a(depth);
 
     node->children[1] = phrase(depth);
@@ -122,7 +129,9 @@ Node* Parser::phrase(int depth){
     depth++;
     if(token.t_type == addition_tk || token.t_type == subtraction_tk){
         node->token = (tokens**)malloc(sizeof(tokens*));
+        node->token_count = 1;
         node->children = (Node**)malloc(sizeof(Node*));
+        node->child_count = 1;
 
         node->token[0] = &token;
         token = scanner.nextToken();
@@ -151,7 +160,9 @@ Node* Parser::d(int depth){
 
     if(token.t_type == division_tk){
         node->token = (tokens**)malloc(sizeof(tokens*));
+        node->token_count = 1;
         node->children = (Node**)malloc(sizeof(Node*));
+        node->child_count = 1;
 
         node->token[0] = &token;
         token = scanner.nextToken();
@@ -182,6 +193,7 @@ Node* Parser::l(int depth){
     depth++;
     if(token.t_type == multiplication_tk){
         node->children = (Node**)malloc(sizeof(Node*));
+        node->child_count = 1;
         token = scanner.nextToken();
         node->children[0] = n(depth);
         return node;
@@ -194,8 +206,10 @@ Node* Parser::m(int depth){
     Node* node = new Node(depth,"<M>");
     depth++;
     node->children = (Node**)malloc(sizeof(Node*));
+    node->child_count = 1;
     if(token.t_type == percent_tk){
         node->token = (tokens**)malloc(sizeof(tokens*));
+        node->token_count = 1;
         node->token[0] = &token;
         token = scanner.nextToken();
         node->children[0] = m(depth);
@@ -217,7 +231,9 @@ Node* Parser::r(int depth){
 
     if(token.t_type == left_parenthesis_tk){
         node->token = (tokens**)malloc(sizeof(tokens*)*2);
+        node->token_count = 2;
         node->children = (Node**)malloc(sizeof(Node*));
+        node->child_count = 1;
 
 
         node->token[0] = &token;
@@ -239,6 +255,7 @@ Node* Parser::r(int depth){
     }
     else{
         node->token = (tokens**)malloc(sizeof(tokens*));
+        node->token_count = 1;
         if(token.t_type == id_tk || token.t_type == int_tk) {
             node->token[0] = &token;
             token = scanner.nextToken();
@@ -262,6 +279,7 @@ Node* Parser::stats(int depth){
 
     if(token.t_type == semi_colon_tk){
         node->token = (tokens**)malloc(sizeof(tokens*));
+        node->token_count = 1;
         node->token[0] = &token;
 
         token = scanner.nextToken();
@@ -284,6 +302,7 @@ Node* Parser::mStat(int depth){
     if(token.t_type == scan_tk || token.t_type == print_tk || token.t_type == cond_tk
     || token.t_type == iter_tk || token.t_type == id_tk || token.t_type == void_tk){
         node->children = (Node**)malloc(sizeof(Node*)*2);
+        node->child_count = 2;
         node->children[0] = stat(depth);
         if(token.t_type == semi_colon_tk){
             token = scanner.nextToken();
@@ -305,26 +324,32 @@ Node* Parser::stat(int depth){ //DO NOT iterate token after match the functioins
 
     if(token.t_type == scan_tk){
         node->children = (Node**)malloc(sizeof(Node*));
+        node->child_count = 1;
         node->children[0] = in(depth);
     }
     else if(token.t_type == print_tk){
         node->children = (Node**)malloc(sizeof(Node*));
+        node->child_count = 1;
         node->children[0] = out(depth);
     }
     else if(token.t_type == void_tk){
         node->children = (Node**)malloc(sizeof(Node*));
+        node->child_count = 1;
         node->children[0] = block(depth);
     }
     else if(token.t_type == cond_tk){
         node->children = (Node**)malloc(sizeof(Node*));
+        node->child_count = 1;
         node->children[0] = _if(depth);
     }
     else if(token.t_type == iter_tk){
         node->children = (Node**)malloc(sizeof(Node*));
+        node->child_count = 1;
         node->children[0] = loop(depth);
     }
     else if(token.t_type == id_tk){
         node->children = (Node**)malloc(sizeof(Node*));
+        node->child_count = 1;
         node->children[0] = assign(depth);
     }
     else{
@@ -338,6 +363,7 @@ Node* Parser::in(int depth){
 
     if(token.t_type == scan_tk){
         node->token = (tokens**)malloc(sizeof(tokens*));
+        node->token_count = 1;
         token = scanner.nextToken();
         if(token.t_type == id_tk){
             node->token[0] = &token;
@@ -359,6 +385,7 @@ Node* Parser::out(int depth){
     if(token.t_type == print_tk){
         token = scanner.nextToken();
         node->children = (Node**)malloc(sizeof(Node*));
+        node->child_count = 1;
         node->children[0] = expr(depth);
     }
     else{
@@ -374,11 +401,13 @@ Node* Parser::_if(int depth){
         token = scanner.nextToken();
         if(token.t_type == left_bracket_tk){
             node->token = (tokens**)malloc(sizeof(tokens*)*2);
+            node->token_count = 2;
             node->token[0] = &token;
 
             token = scanner.nextToken();
 
             node->children = (Node**)malloc(sizeof(Node*)*4);
+            node->child_count = 4;
 
             node->children[0] = expr(depth);
             node->children[1] = ro(depth);
@@ -409,7 +438,9 @@ Node* Parser::loop(int depth){
         token = scanner.nextToken();
         if(token.t_type == left_bracket_tk){
             node->children = (Node**)malloc(sizeof(Node*)*4);
+            node->child_count = 4;
             node->token = (tokens**)malloc(sizeof(tokens*)*2);
+            node->token_count = 2;
 
             node->token[0] = &token;
             token = scanner.nextToken();
@@ -441,6 +472,7 @@ Node* Parser::assign(int depth){
 
     if(token.t_type == id_tk){
         node->token = (tokens**)malloc(sizeof(tokens*)*2);
+        node->token_count = 2;
         node->token[0] = &token;
 
         token = scanner.nextToken();
@@ -451,6 +483,7 @@ Node* Parser::assign(int depth){
             token = scanner.nextToken();
 
             node->children = (Node**)malloc(sizeof(Node*));
+            node->child_count = 1;
             node->children[0] = expr(depth);
         }
         else{
@@ -468,14 +501,17 @@ Node* Parser::ro(int depth){
     depth++;
     if(token.t_type == greater_than_tk){
         node->token = (tokens**)malloc(sizeof(tokens*));
+        node->token_count = 1;
         node->token[0] = &token;
     }
     else if(token.t_type == equals_tk){
         node->children = (Node**)malloc(sizeof(Node*));
+        node->child_count = 1;
         node->children[0] = eq(depth);
     }
     else if(token.t_type == less_than_tk){
         node->children = (Node**)malloc(sizeof(Node*));
+        node->child_count = 1;
         node->children[0] = lt(depth);
     }
     else{
@@ -486,17 +522,18 @@ Node* Parser::ro(int depth){
 //<EQ>            ->      < | > | empty
 Node* Parser::eq(int depth){
     Node* node = new Node(depth, "<EQ>");
-    depth++;
     tokens temp = token;
     token = scanner.nextToken();
     if(token.t_type == less_than_tk || token.t_type == greater_than_tk){
         node->token = (tokens**)malloc(sizeof(tokens*)*2);
+        node->token_count = 2;
         node->token[0] = &temp;
         node->token[1] = &token;
         token = scanner.nextToken();
     }
     else {
-        node->token = (tokens**) malloc(sizeof(tokens*));
+        node->token = (tokens**)malloc(sizeof(tokens*));
+        node->token_count = 1;
         node->token[0] = &temp;
 
     }
@@ -505,19 +542,20 @@ Node* Parser::eq(int depth){
 //<LT>            ->      empty |  >
 Node* Parser::lt(int depth){
     Node* node = new Node(depth, "<LT>");
-    depth++;
 
     tokens temp = token;
     token = scanner.nextToken();
 
     if(token.t_type == greater_than_tk){
         node->token = (tokens**)malloc(sizeof(tokens*)*2);
+        node->token_count = 2;
         node->token[0] = &temp;
         node->token[1] = &token;
         token = scanner.nextToken();
     }
     else{
         node->token = (tokens**)malloc(sizeof(tokens*));
+        node->token_count = 1;
         node->token[0] = &temp;
 
     }
