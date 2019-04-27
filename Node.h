@@ -7,19 +7,18 @@
 
 
 #include <cstdlib>
+#include <vector>
 #include "tokens.h"
 
 struct Node {
     explicit Node(int depth, const std::string name){
-        children = nullptr;
-        token = nullptr;
         this->child_count = 0;
         this->token_count = 0;
         this->depth = depth;
         this->name = name;
     }
-    Node** children;
-    tokens** token;
+    std::vector<Node*> children;
+    std::vector<tokens*> token;
     int child_count, token_count;
     std::string name;
 
