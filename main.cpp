@@ -1,5 +1,5 @@
 #include <iostream>
-#include "parser.h"
+#include "Parser.h"
 #include "testTree.h"
 int main(int argc, char** argv) {
 

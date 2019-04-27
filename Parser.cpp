@@ -2,7 +2,7 @@
 // Created by Ben Cradick on 2019-04-22.
 //
 
-#include "parser.h"
+#include "Parser.h"
 tokens* copy(tokens);
 
 Parser::Parser(int argc, char **argv) : scanner(argc, argv) {
