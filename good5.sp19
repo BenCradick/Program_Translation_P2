@@ -1,5 +1,0 @@
-void
-  scan x1 ;
-  cond [ x1 + 2 = < 3 ]
-    print 1 ;
-return
