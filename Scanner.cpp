@@ -27,13 +27,20 @@ Scanner::Scanner(int argc, char **argv) : files(argc, argv){
     }
 
 }
-std::list<tokens> Scanner::nextToken()
+tokens Scanner::nextToken()
 {
-    std::list<tokens> token_list;
-    tokens token = getProtoToken();
+    tokens token;
+    if(token_list.empty()) {
 
-    token_list.splice(token_list.end(), routeToken(token));
-    return token_list;
+
+         token = getProtoToken();
+
+        token_list.splice(token_list.end(), routeToken(token));
+    }
+    token = *token_list.begin();
+    token_list.pop_front();
+
+    return token;
 }
 
 //This function is the first filter to remove the white space and comments.
@@ -143,6 +150,7 @@ std::list<tokens> Scanner::verifyInt(tokens token)
             std::cerr << "Scanner Error: Invalid integer representation " << token.instance << " at line " << token.line << std::endl;
             exit(EXIT_FAILURE);
         }
+        i++;
     }
     std::list<tokens> temp; // "token" list of tokens
     temp.push_back(token);
@@ -469,6 +477,9 @@ std::list<tokens> Scanner::determineOperatorToken(tokens token){
             break;
         case ']' :
             token.t_type = right_bracket_tk;
+            break;
+        case ';' :
+            token.t_type = semi_colon_tk;
             break;
         default:
             std::cerr << "Scanner::determineOperatorToken: unknown character: " << token.instance.at(0) << std::endl;

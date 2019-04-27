@@ -1,9 +1,10 @@
 #include <iostream>
-#include "TestScanner.h"
+#include "Parser.h"
+#include "testTree.h"
 int main(int argc, char** argv) {
 
-    TestScanner testScanner(argc, argv);
-    testScanner.test();
+    Parser parser(argc, argv);
+    testTree(parser.root);
 
     return 0;
 }
