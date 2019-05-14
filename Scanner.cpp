@@ -5,6 +5,10 @@
 #include "Scanner.h"
 #include "FileManager.h"
 #include <string.h>
+#include <stdexcept>
+#include <iostream>
+#include <algorithm>
+
 
 //Helper functions prototypes for "Filter2" in suggestions
 
