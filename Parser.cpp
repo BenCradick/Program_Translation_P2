@@ -17,6 +17,7 @@ Parser::Parser(int argc, char **argv) : scanner(argc, argv) {
 //<program>       ->      <vars> <block>
 Node* Parser::program(int depth){
     Node* node = new Node(depth, "<program>");
+    node->depth = depth;
     depth++;
     token = scanner.nextToken();
 
@@ -45,6 +46,7 @@ Node* Parser::program(int depth){
 //<block>         ->      void <vars> <stats> return
 Node* Parser::block(int depth){
     Node* node = new Node(depth, "<block>");
+    node->depth = depth;
     depth++;
     //token = scanner.nextToken();
     if(token.t_type == void_tk){
@@ -79,6 +81,7 @@ Node* Parser::block(int depth){
 //<vars>          ->      empty | var Identifier : Integer <vars>
 Node* Parser::vars(int depth){
     Node* node = new Node(depth, "<vars>");
+    node->depth = depth;
     depth++;
     //token = scanner.nextToken();
     if(token.t_type == id_tk){
@@ -112,6 +115,7 @@ Node* Parser::vars(int depth){
 //<expr>          ->      <A> <phrase>
 Node* Parser::expr(int depth){
     Node* node = new Node(depth, "<expr>");
+    node->depth = depth;
     depth++;
     node->children.resize(2);
     node->child_count = 2;
@@ -127,6 +131,7 @@ Node* Parser::expr(int depth){
 //<phrase>        ->      + <expr> | - <expr> | empty
 Node* Parser::phrase(int depth){
     Node* node = new Node(depth, "<phrase>");
+    node->depth = depth;
     depth++;
     if(token.t_type == addition_tk || token.t_type == subtraction_tk){
         node->token.resize(1);
@@ -145,6 +150,7 @@ Node* Parser::phrase(int depth){
 //<A>             ->      <N> <D>
 Node* Parser::a(int depth){
     Node* node = new Node(depth, "<A>");
+    node->depth = depth;
     depth++;
 
     node->children.resize(2);
@@ -158,6 +164,7 @@ Node* Parser::a(int depth){
 //<D>             ->      / <A> | empty
 Node* Parser::d(int depth){
     Node* node = new Node(depth, "<D>");
+    node->depth = depth;
     depth++;
 
     if(token.t_type == division_tk){
@@ -179,6 +186,7 @@ Node* Parser::d(int depth){
 //<N>             ->      <M> <L>
 Node* Parser::n(int depth){
     Node* node = new Node(depth, "<N>");
+    node->depth = depth;
     depth++;
 
     node->children.resize(2);
@@ -193,6 +201,7 @@ Node* Parser::n(int depth){
 //<L>             ->      * <N> | empty
 Node* Parser::l(int depth){
     Node* node = new Node(depth, "<L>");
+    node->depth = depth;
     depth++;
     if(token.t_type == multiplication_tk){
         node->children.resize(1);
@@ -207,6 +216,7 @@ Node* Parser::l(int depth){
 //<M>             ->      % <M> |  <R>
 Node* Parser::m(int depth){
     Node* node = new Node(depth,"<M>");
+    node->depth = depth;
     depth++;
     node->children.resize(1);
     node->child_count = 1;
@@ -229,6 +239,7 @@ Node* Parser::m(int depth){
 //<R>             ->      ( <expr> ) | Identifier | Integer
 Node* Parser::r(int depth){
     Node* node = new Node(depth, "<R>");
+    node->depth = depth;
     depth++;
 
 
@@ -274,6 +285,7 @@ Node* Parser::r(int depth){
 //<stats>         ->      <stat> ; <mStat>
 Node* Parser::stats(int depth){
     Node* node = new Node(depth, "<stats>");
+    node->depth = depth;
     depth++;
     node->children.resize(2);
     node->child_count = 2;
@@ -301,6 +313,7 @@ Node* Parser::stats(int depth){
 //<mStat>         ->      empty |  <stat>  ;  <mStat>
 Node* Parser::mStat(int depth){
     Node* node = new Node(depth, "<mStat>");
+    node->depth = depth;
     depth++;
 
     if(token.t_type == scan_tk || token.t_type == print_tk || token.t_type == cond_tk
@@ -324,6 +337,7 @@ Node* Parser::mStat(int depth){
 Node* Parser::stat(int depth){ //DO NOT iterate token after match the functioins called will
 
     Node* node = new Node(depth, "<stat>");
+    node->depth = depth;
     depth++;
 
     if(token.t_type == scan_tk){
@@ -364,6 +378,7 @@ Node* Parser::stat(int depth){ //DO NOT iterate token after match the functioins
 //<in>            ->      scan  Identifier
 Node* Parser::in(int depth){
     Node* node = new Node(depth, "<in>");
+    node->depth = depth;
 
     if(token.t_type == scan_tk){
         node->token.resize(1);
@@ -385,6 +400,7 @@ Node* Parser::in(int depth){
 //<out>           ->      print  <expr>
 Node* Parser::out(int depth){
     Node* node = new Node(depth, "<out>");
+    node->depth = depth;
     depth++;
     if(token.t_type == print_tk){
         token = scanner.nextToken();
@@ -400,6 +416,7 @@ Node* Parser::out(int depth){
 //<if>            ->      cond [ <expr> <RO> <expr> ] <stat>
 Node* Parser::_if(int depth){
     Node* node = new Node(depth, "<if>");
+    node->depth = depth;
     depth++;
     if(token.t_type == cond_tk){
         token = scanner.nextToken();
@@ -437,6 +454,7 @@ Node* Parser::_if(int depth){
 //<loop>          ->      iter [ <expr> <RO> <expr> ] <stat>
 Node* Parser::loop(int depth){
     Node* node = new Node(depth, "<loop>");
+    node->depth = depth;
     depth++;
     if(token.t_type == iter_tk){
         token = scanner.nextToken();
@@ -472,6 +490,7 @@ Node* Parser::loop(int depth){
 //<assign>        ->      Identifier  = <expr>
 Node* Parser::assign(int depth){
     Node* node = new Node(depth, "<assign>");
+    node->depth = depth;
     depth++;
 
     if(token.t_type == id_tk){
@@ -502,6 +521,7 @@ Node* Parser::assign(int depth){
 //<RO>            ->      <LT> | <EQ>  | >
 Node* Parser::ro(int depth){
     Node* node = new Node(depth, "<RO>");
+    node->depth = depth;
     depth++;
     if(token.t_type == greater_than_tk){
         node->token.resize(1);
@@ -526,6 +546,7 @@ Node* Parser::ro(int depth){
 //<EQ>            ->      < | > | empty
 Node* Parser::eq(int depth){
     Node* node = new Node(depth, "<EQ>");
+    node->depth = depth;
     tokens temp = token;
     token = scanner.nextToken();
     if(token.t_type == less_than_tk || token.t_type == greater_than_tk){
@@ -546,6 +567,7 @@ Node* Parser::eq(int depth){
 //<LT>            ->      empty |  >
 Node* Parser::lt(int depth){
     Node* node = new Node(depth, "<LT>");
+    node->depth = depth;
 
     tokens temp = token;
     token = scanner.nextToken();

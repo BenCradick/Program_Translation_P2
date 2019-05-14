@@ -38,5 +38,5 @@ void testTree(Node* root){
         testTree(root->children[i]);
         i++;
     }
-    return;
+
 }
