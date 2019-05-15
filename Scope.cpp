@@ -24,15 +24,15 @@ void Scope::setGlobal(Node* root) {
             }
             return;
         }
-        if(global.find(root->token[0]->instance) == global.end() && root->token[0]->t_type == id_tk)
+        if(root->token[0]->t_type == id_tk)
         {
-            if(root->token[1]->t_type == int_tk)
+            if(root->token[1]->t_type == int_tk && global.find(root->token[0]->instance) == global.end() )
             {
                 global.insert({root->token[0]->instance, root->token[1]->instance});
             }
             else
             {
-                std::fprintf(stderr, "Trying to use uninitialized var: %s\n", root->token[0]->instance.c_str());
+                std::fprintf(stderr, "var %s has already been defined in this scope\n", root->token[0]->instance.c_str());
                 exit(EXIT_FAILURE);
             }
         }
