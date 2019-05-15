@@ -16,8 +16,10 @@ public:
     ~FileManager();
 
     std::fstream inputFile;
+    std::fstream outputFile;
 
     std::string fileName;
+    std::string outputFileName;
     std::string inputFileName;
 
     bool tempFile = false;

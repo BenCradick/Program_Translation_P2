@@ -10,8 +10,9 @@ FileManager::FileManager(int argc, char **argv)
 {
     if(argc < 2)
     {
-        fileName = "out.sp19";
-        inputFile.open(fileName, std::fstream::ate | std::fstream::out | std::fstream::in | std::fstream::app); // ate = At The End, meaning write to end of the file.
+        fileName = "out";
+        inputFileName = fileName + ".sp19";
+        inputFile.open(inputFileName, std::fstream::ate | std::fstream::out | std::fstream::in | std::fstream::app); // ate = At The End, meaning write to end of the file.
 
 
         std::string keyBuffer;
@@ -19,13 +20,18 @@ FileManager::FileManager(int argc, char **argv)
         inputFile << keyBuffer;
 
         inputFile.close();
-        inputFile.open(fileName, std::fstream::in);
+        inputFile.open(inputFileName, std::fstream::in);
         errorCheckHelper();
         tempFile = true;
         if(isEmpty(inputFile)){
             std::cerr << "Empty input stream" << std::endl;
             exit(EXIT_FAILURE);
         }
+
+        outputFileName = fileName + ".asm";
+        outputFile.open(outputFileName, std::ios::out | std::ios::app | std::ios::trunc);
+        errorCheckHelper();
+
     }
     else
     {
@@ -37,6 +43,9 @@ FileManager::FileManager(int argc, char **argv)
             std::cerr << "Empty input file: " + inputFileName << std::endl;
             exit(EXIT_FAILURE);
         }
+        outputFileName = fileName + ".asm";
+        outputFile.open(outputFileName, std::ios::out | std::ios::app | std::ios::trunc);
+        errorCheckHelper();
     }
 }
 
@@ -45,7 +54,7 @@ void errorCheckHelper()
 {
     if(errno != 0)
     {
-        perror("Failed to read input: ");
+        std::cerr << "Error: " << std::strerror(errno);
         exit(EXIT_FAILURE);
     }
 }
