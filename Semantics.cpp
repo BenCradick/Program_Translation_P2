@@ -11,7 +11,8 @@
 
 
 Semantics::Semantics() {
-    footer = "";
+
+    tos = -1;
     expr_count = 0;
     if_count = 0;
     iter_count = 0;
@@ -24,11 +25,12 @@ Semantics::Semantics() {
 
 
 std::string Semantics::Semantics::generateAssembly(Node* root){
+    global.insert({"T", "0"});
     if(root->child_count == 2){
-        return block(root->children[1]);
+        return "LOAD 0\nPUSH\nSTACKW " + std::to_string(++tos) + block(root->children[1]) + "STOP";
     }
     else{
-        return block(root->children[0]);
+        return "LOAD 0\nPUSH\nSTACKW " + std::to_string(++tos) + block(root->children[0]) + "STOP";
     }
 }
 
@@ -86,135 +88,168 @@ void Semantics::Semantics::setGlobal(Node* root) {
     }
 }
 std::string Semantics::block(Node* root){
+    //pushing to the stack would happen here for any variables local to this block
     if(root->child_count == 2){
-        return stats(root->children[1]) + "STOP\n";
+        return stats(root->children[1]);
     }
     else{
-        return stats(root->children[0]) + "STOP\n";
+        return stats(root->children[0]);
     }
 }
 std::string Semantics::expr(Node* root){
-    if(root->children[1] == nullptr){
-        return a(root->children[0]);
-    }
-    else {
-        std::string node1 = var_str + std::to_string(var_count);
-        std::string slug = expr_str + std::to_string(expr_count);
-        footer += slug + ":";
-        std::string body = "BR " + slug + "\n" + "outexpr" + std::to_string(expr_count) + ": ";
-        std::string back = "BR outexpr" + std::to_string(expr_count) + "\n";
-        var_count++;
-        expr_count++;
-        footer += a(root->children[0]);
-        footer += back;
-
-        std::string node2 = var_str + std::to_string(var_count);
-        slug = expr_str + std::to_string(expr_count);
-        footer += slug + ": ";
-        body += "BR " + slug + "\n" + "outexpr" + std::to_string(expr_count) + ": ";
-        back = "BR outexpr" + std::to_string(expr_count) + "\n";
-        var_count++;
-        expr_count++;
-        footer += expr(root->children[0]->children[0]);
-        footer += back;
-        global.insert({node1, "0"});
-        global.insert({node2, "0"});
-
-        if(root->children[1]->token[0]->t_type == addition_tk){
-            body += "LOAD " + node1 + "\nADD " + node1 + " " + node2 + "\n";
-            return body;
-
-        }
-        else{
-            body += "LOAD " + node1 + "\nSUB " + node2 + "\n";
-            return body;
-        }
-
-
-    }
+    return a(root->children[0]) + phrase(root->children[1]);
 }
 std::string Semantics::a(Node *root) {
-    if(root->children[1] == nullptr){
-        return n(root->children[0]);
+    return n(root->children[0]) + d(root->children[1]);
+}
+std::string Semantics::phrase(Node* root){
+    if(root == nullptr){
+        return "";
     }
     else{
-        std::string node1 = var_str + std::to_string(var_count);
-        std::string slug = expr_str + std::to_string(expr_count);
-        footer += slug + ":";
-        std::string body = "BR " + slug + "\n" + "outexpr" + std::to_string(expr_count) + ": ";
-        std::string back = "BR outexpr" + std::to_string(expr_count) + "\n";
-        expr_count++;
-        var_count++;
-        footer += n(root->children[0]);
-        footer += back;
-
-        std::string node2 = var_str + std::to_string(var_count);
-        slug = expr_str + std::to_string(expr_count);
-        footer += slug + ": ";
-        body += "BR " + slug + "\n" + "outexpr" + std::to_string(expr_count) + ": ";
-        back = "BR outexpr" + std::to_string(expr_count) + "\n";
-        footer += d(root->children[0]->children[0]);
-        footer += back;
-        var_count++;
-        expr_count++;
-        global.insert({node1, "0"});
-        global.insert({node2, "0"});
-
-        body += "LOAD " + node1 + "\nDIV " + node2 + "\n";
-        return body;
+        return arithmetic(root);
     }
+
 }
 std::string Semantics::n(Node* root){
-    if(root->children[1] == nullptr){
-        return m(root->children[0]);
+    return m(root->children[0]) + l(root->children[1]);
+}
+std::string Semantics::l(Node* root){
+    if(root == nullptr){
+        return "";
     }
-    else{
-        std::string node1 = var_str + std::to_string(var_count);
-        std::string slug = expr_str + std::to_string(expr_count);
-        footer += slug + ":";
-        std::string body = "BR " + slug + "\n" + "outexpr" + std::to_string(expr_count) + ": ";
-        std::string back = "BR outexpr" + std::to_string(expr_count) + "\n";
-        var_count++;
-        expr_count++;
-        footer += m(root->children[0]);
-        footer += back;
-
-        std::string node2 = var_str + std::to_string(var_count);
-        slug = expr_str + std::to_string(expr_count);
-        footer += slug + ": ";
-        body += "BR " + slug + "\n" + "outexpr" + std::to_string(expr_count) + ": ";
-        back = "BR outexpr" + std::to_string(expr_count) + "\n";
-        footer += n(root->children[0]->children[0]);
-        footer += back;
-        var_count++;
-        expr_count++;
-        global.insert({node1, "0"});
-        global.insert({node2, "0"});
-
-        body += "LOAD " + node1 +"\n" + "MULT " + node2 + "\n";
-
-        return body;
+    return arithmetic(root);
+}
+std::string Semantics::d(Node* root){
+    if(root == nullptr){
+        return "";
     }
+    return arithmetic(root);
+}
+std::string Semantics::m(Node* root){
+    if(root->token_count == 0){
+        return r(root->children[0]);
+    }
+    return arithmetic(root);
+}
+std::string Semantics::r(Node* root){
+    if(root->token_count == 0){
+        return expr(root->children[0]);
+    }
+    return root->token[0]->instance;
+}
+std::string Semantics::mStat(Node *root) {
+    if(root == nullptr){
+        return "";
+    }
+    return stat(root->children[0]) + mStat(root->children[1]);
 }
 std::string Semantics::stats(Node *root) {
+    return mStat(root);
+}
+std::string Semantics::stat(Node *root) {
+    if(root->children[0]->name == "<in>"){
+        return in(root->children[0]);
+    }
+    else if(root->children[0]->name == "<out>"){
+        return out(root->children[0]);
+    }
+    else if(root->children[0]->name == "<block>"){
+        return block(root->children[0]);
+    }
+    else if(root->children[0]->name == "<if>"){
+        return _if(root->children[0]);
+    }
+    else if(root->children[0]->name == "<loop>"){
+        return loop(root->children[0]);
+    }
+    else if(root->children[0]->name == "<assign>"){
+        return assign(root->children[0]);
+    }
+    else if(root->children[0]->name == "<loop>"){
+        return loop(root->children[0]);
+    }
+    else{
+        std::cerr << "Semantic Error: invalid expresssion type  found in statement\n";
+        exit(EXIT_FAILURE);
+    }
+}
+std::string Semantics::in(Node *root) {
+    return "READ " + root->token[0]->instance;
+}
+std::string Semantics::out(Node *root) {
+    return expr(root->children[0]) + "STORE T\nWRITE T\n";
+}
+std::string Semantics::ro(Node* root){
+    if(root->token[0]->t_type == less_than_tk){
+        return lt(root->children[0]);
+    }
+    else if(root->token[0]->t_type == equals_tk){
+        return eq(root->children[0]);
+    }
+    else if(root->token[0]->t_type == greater_than_tk){
+        return greater();
+    }else{
+        std::cerr << "Semantics Error: Unknown token instead of realational operator.\n";
+        exit(EXIT_FAILURE);
+    }
+}
+std::string Semantics::equal(Node *exp1, Node *exp2, Node *stmt) {
+    return "BRZERO ";
+}
+std::string Semantics::greater(Node *exp1, Node *exp2, Node *stmt) {
+    return "BRPOS " ;
+}
+std::string Semantics::lesser(Node *exp1, Node *exp2, Node *stmt) {
+    return "BRNEG ";
+}
+std::string Semantics::notEqual(Node *exp1, Node *exp2, Node *stmt) {
 
 }
-std::string Semantics::equal(std::string& destination){
-    return "BRZERO " + destination + "\n";
+std::string Semantics::greaterEqual(Node *exp1, Node *exp2, Node *stmt) {
+    return "BRZPOS ";
 }
-std::string Semantics::greater(std::string& destination){
-    return "BRPOS " + destination + "\n";
+std::string Semantics::lesserEqual(Node *exp1, Node *exp2, Node *stmt) {
+    return "BRZNEG ";
 }
-std::string Semantics::lesser(std::string& destination){
-    return "BRNEG " + destination + "\n";
-}
-std::string Semantics::notEqual(std::string& destination){
-    return greater(destination) + lesser(destination);
-}
-std::string Semantics::greaterEqual(std::string& destination) {
+std::string Semantics::arithmetic(Node *root){
+    std::string prefix = "PUSH\nSTACKW " + std::to_string(++tos) + "\n";
+    //broken up so that tos gets modified before call to expr
+    prefix += arithHelper(root) + "\n" + "STORE T\n STACKR " + std::to_string(tos--) + "\nPOP\n";
 
-    return "BRZPOS " + destination + "\n";
+    switch(root->token[0]->t_type){
+        case subtraction_tk :
+            return prefix + "SUB T\n";
+        case addition_tk :
+            return prefix + "ADD T\n";
+        case multiplication_tk :
+            return prefix + "MULT T\n";
+        case division_tk :
+            return prefix  + "DIV T\n";
+        case percent_tk :
+            return prefix + mod(root->children[0]);
+        default:
+            std::cerr << "Invalid semantics: unknown arithmetic token encountered\n";
+            exit(EXIT_FAILURE);
+    }
 }
-std::string Semantics::lesserEqual(std::string& destination){
-    return "BRZNEG " + destination + "\n";
+std::string Semantics::mod(Node* root){
+
+}
+std::string Semantics::arithHelper(Node *root) {
+    switch(root->token[0]->t_type){
+        case subtraction_tk :
+        case addition_tk :
+            return expr(root->children[0]);
+        case multiplication_tk :
+            return n(root->children[0]);
+        case division_tk :
+            return a(root->children[0]);
+        case percent_tk :
+            return m(root->children[0]);
+        default:
+            std::cerr << "Invalid semantics: unknown arithmetic token encountered\n";
+            exit(EXIT_FAILURE);
+    }
+
 }

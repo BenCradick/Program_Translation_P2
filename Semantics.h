@@ -23,11 +23,12 @@ struct Semantics {
 
 
 private:
-    std::string footer;
+
     int expr_count;
     int iter_count;
     int if_count;
     int var_count;
+    int tos;
     std::string expr_str;
     std::string iter_str;
     std::string if_str;
@@ -35,13 +36,13 @@ private:
 
     std::string block(Node* root);
 
-    std::string notEqual(std::string, std::string);
-    std::string greater(std::string& destination);
-    std::string lesser(std::string& destination);
-    std::string greaterEqual(std::string& destination);
-    std::string lesserEqual(std::string& destination);
-    std::string equal(std::string& destination);
-    std::string notEqual(std::string& destination);
+
+    std::string greater(Node *exp1, Node *exp2, Node *stmt);
+    std::string lesser(Node *exp1, Node *exp2, Node *stmt);
+    std::string greaterEqual(Node *exp1, Node *exp2, Node *stmt);
+    std::string lesserEqual(Node *exp1, Node *exp2, Node *stmt);
+    std::string equal(Node *exp1, Node *exp2, Node *stmt);
+    std::string notEqual(Node *exp1, Node *exp2, Node *stmt);
 
     std::string stats(Node* root);
     std::string expr(Node* root);
@@ -59,9 +60,13 @@ private:
     std::string _if(Node* root);
     std::string loop(Node* root);
     std::string assign(Node* root);
-    std::string RO(Node* root);
+    std::string ro(Node* root);
     std::string eq(Node* root);
     std::string lt(Node* root);
+
+    std::string arithmetic(Node *root);
+    std::string arithHelper(Node* root);
+    std::string mod(Node* root);
 
 
 
