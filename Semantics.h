@@ -24,25 +24,21 @@ struct Semantics {
 
 private:
 
-    int expr_count;
+
     int iter_count;
-    int if_count;
-    int var_count;
+
     int tos;
-    std::string expr_str;
     std::string iter_str;
-    std::string if_str;
-    std::string var_str;
 
     std::string block(Node* root);
 
 
-    std::string greater(Node *exp1, Node *exp2, Node *stmt);
-    std::string lesser(Node *exp1, Node *exp2, Node *stmt);
-    std::string greaterEqual(Node *exp1, Node *exp2, Node *stmt);
-    std::string lesserEqual(Node *exp1, Node *exp2, Node *stmt);
-    std::string equal(Node *exp1, Node *exp2, Node *stmt);
-    std::string notEqual(Node *exp1, Node *exp2, Node *stmt);
+    std::string greater();
+    std::string lesser();
+    std::string greaterEqual();
+    std::string lesserEqual();
+    std::string equal();
+    std::string notEqual();
 
     std::string stats(Node* root);
     std::string expr(Node* root);
@@ -66,7 +62,8 @@ private:
 
     std::string arithmetic(Node *root);
     std::string arithHelper(Node* root);
-    std::string mod(Node* root);
+    std::string conditionalHelper(Node* root);
+    std::string mod();
 
 
 
