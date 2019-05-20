@@ -1,13 +1,13 @@
 CC = g++
 CFLAGS = -std=c++11
 TARGET = parser
-OBJS = main.o Scanner.o FileManager.o Parser.o Scope.o
+OBJS = main.o Scanner.o FileManager.o Parser.o Semantics.o
 $(TARGET): $(OBJS)
 	$(CC) -o $(TARGET) $(OBJS)
 main.o: main.cpp
 	$(CC) $(CFLAGS) -c main.cpp
-Scope.o: Scope.cpp
-	$(CC) $(CFLAGS) -c Scope.cpp
+Semantics.o: Semantics.cpp
+	$(CC) $(CFLAGS) -c Semantics.cpp
 Scanner.o: Scanner.cpp
 	$(CC) $(CFLAGS) -c Scanner.cpp
 FileManager.o: FileManager.cpp
