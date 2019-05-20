@@ -1,5 +1,10 @@
-Attempt at option 3 was made.git p
-=======
+
+P3:
+Globally scoped variables used.
+
+
+
+=======================================================================================================================
 P2:
 Parser with bnary tree works, prints the name of the node and tokens if applicable.
 Fixed the issue with P1 where it was delimiting by whitespaces, should no longer generate errors for valid syntax.
@@ -10,6 +15,7 @@ Fixed the issue with P1 where it was delimiting by whitespaces, should no longer
 
 
 #################################################################################################################
+P1:
 Attempt at option 3 was made.
 
 The FSA table is implemented modularly over a few functions, c++ makes it not_fun++ to store functions in an array, and
