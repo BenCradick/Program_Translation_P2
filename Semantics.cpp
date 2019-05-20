@@ -22,13 +22,21 @@ std::string Semantics::Semantics::generateAssembly(Node* root)
     global.insert({"T", "0"});
     if(root->child_count == 2)
     {
-        return "LOAD 0\nPUSH\nSTACKW " + std::to_string(++tos) + block(root->children[1]) + "STOP";
+        return "LOAD 0\nPUSH\nSTACKW " + std::to_string(++tos) + "\n" + block(root->children[1]) + "STOP\n" + dumpVariables();
     }
 
     else
     {
-        return "LOAD 0\nPUSH\nSTACKW " + std::to_string(++tos) + block(root->children[0]) + "STOP";
+        return "LOAD 0\nPUSH\nSTACKW " + std::to_string(++tos) + "\n" + block(root->children[0]) + "STOP\n" + dumpVariables();
     }
+}
+
+std::string Semantics::dumpVariables() {
+    std::string slug;
+    for(auto elem : global){
+        slug += elem.first + " " + elem.second + "\n";
+    }
+    return slug;
 }
 
 void Semantics::Semantics::setGlobal(Node* root)
@@ -53,6 +61,9 @@ void Semantics::Semantics::setGlobal(Node* root)
             if(root->token[1]->t_type == int_tk && global.find(root->token[0]->instance) == global.end() )
             {
                 global.insert({root->token[0]->instance, root->token[1]->instance});
+            }
+            else if(root->token[1]->t_type == equals_tk && global.find(root->token[0]->instance) != global.end()){
+
             }
             else
             {
@@ -156,7 +167,7 @@ std::string Semantics::r(Node* root)
     {
         return expr(root->children[0]);
     }
-    return root->token[0]->instance;
+     return "LOAD " + root->token[0]->instance + "\n";
 }
 std::string Semantics::mStat(Node *root)
 {
@@ -209,7 +220,7 @@ std::string Semantics::stat(Node *root)
 }
 std::string Semantics::in(Node *root)
 {
-    return "READ " + root->token[0]->instance;
+    return "READ " + root->token[0]->instance +"\n";
 }
 std::string Semantics::out(Node *root)
 {
@@ -218,24 +229,24 @@ std::string Semantics::out(Node *root)
 std::string Semantics::_if(Node *root)
 {
     std::string slug = conditionalHelper(root);
-    std::string conditional = ro(root->children[1]);
+    std::string conditional =  "MULT -1\n" + ro(root->children[1]);
     std::string iter = iter_str + std::to_string(iter_count);
     std::string out = "out" + std::to_string(iter_count);
     iter_count++;
-    slug += conditional + "BR " + out +"\n" + iter + ": " + stat(root->children[3]);
-    slug += out + ": ";
+    slug += conditional + "BR " + out +"\n" + iter + ": NOOP\n" + stat(root->children[3]);
+    slug += out + ": NOOP\n";
     return slug;
 
 }
 std::string Semantics::loop(Node *root)
 {
     std::string slug = conditionalHelper(root);
-    std::string conditional = ro(root->children[1]);
+    std::string conditional = "MULT -1\n" + ro(root->children[1]);
     std::string iter = iter_str + std::to_string(iter_count);
     std::string out = "out" + std::to_string(iter_count);
     iter_count++;
-    slug += conditional + "BR " + out +"\n" + iter + ": " + stat(root->children[3]);
-    slug += conditional + out +": ";
+    slug += conditional + "BR " + out +"\n" + iter + ": NOOP\n" + stat(root->children[3]);
+    slug += conditional + out +": NOOP\n";
     return slug;
 }
 std::string Semantics::assign(Node* root){
@@ -338,30 +349,31 @@ std::string Semantics::equal()
 }
 std::string Semantics::greater()
 {
-    return "BRPOS " + iter_str + std::to_string(iter_count) + "\n" ;
+    return "BRZNEG " + iter_str + std::to_string(iter_count) + "\n" ;
 }
 std::string Semantics::lesser()
 {
-    return "BRNEG " + iter_str + std::to_string(iter_count) + "\n";
+    return "BRZPOS " + iter_str + std::to_string(iter_count) + "\n";
 }
 std::string Semantics::notEqual()
 {
-    return greater() + lesser();
+    // math is inverted compared to what i originally thought i was writing so had to invert which funcitons make up notEqual
+    return greaterEqual() + lesserEqual();
 }
 std::string Semantics::greaterEqual()
 {
-    return "BRZPOS " + iter_str + std::to_string(iter_count) + "\n";
+    return "BRNEG " + iter_str + std::to_string(iter_count) + "\n";
 }
 std::string Semantics::lesserEqual()
 {
-    return "BRZNEG " + iter_str + std::to_string(iter_count) + "\n";
+    return "BRPOS " + iter_str + std::to_string(iter_count) + "\n";
 }
 //helper method that writes all mathematical operations, used so that stack operations have one point of failure in compiler.
 std::string Semantics::arithmetic(Node *root)
 {
     std::string prefix = "PUSH\nSTACKW " + std::to_string(++tos) + "\n";
     //broken up so that tos gets modified before call to expr
-    prefix += arithHelper(root) + "\n" + "STORE T\n STACKR " + std::to_string(tos--) + "\nPOP\n";
+    prefix += arithHelper(root) + "STORE T\nSTACKR " + std::to_string(tos--) + "\nPOP\n";
 
     switch(root->token[0]->t_type)
     {
@@ -374,24 +386,24 @@ std::string Semantics::arithmetic(Node *root)
         case division_tk :
             return prefix  + "DIV T\n";
         case percent_tk :
-            return prefix + mod();
+            return arithHelper(root) + mod();
         default:
             std::cerr << "Invalid semantics: unknown arithmetic token encountered\n";
             exit(EXIT_FAILURE);
     }
 }
+//thought % was modulo so i had written a modulo function but it was unary negation, i'm an idiot.
 std::string Semantics::mod()
 {
-    std::string iteration_point = iter_str + std::to_string(iter_count);
-    std::string slug = iteration_point + ": ";
-    slug += "SUB T\n";
-    slug += "BRZNEG " + iteration_point +"\n";
-    slug += "MULT -1\n";
-    iter_count++;
+
+    std::string slug = "MULT -1\n";
     return slug;
 }
 std::string Semantics::arithHelper(Node *root)
 {
+    if(root == nullptr){
+        return "";
+    }
     switch(root->token[0]->t_type)
     {
         case subtraction_tk :

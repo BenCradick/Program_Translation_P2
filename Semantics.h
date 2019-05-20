@@ -64,6 +64,7 @@ private:
     std::string arithHelper(Node* root);
     std::string conditionalHelper(Node* root);
     std::string mod();
+    std::string dumpVariables();
 
 
 

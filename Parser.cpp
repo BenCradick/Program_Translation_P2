@@ -206,6 +206,8 @@ Node* Parser::l(int depth){
     if(token.t_type == multiplication_tk){
         node->children.resize(1);
         node->child_count = 1;
+        node->token.resize(1);
+        node->token[0] = copy(token);
         token = scanner.nextToken();
         node->children[0] = n(depth);
         return node;
@@ -527,15 +529,22 @@ Node* Parser::ro(int depth){
         node->token.resize(1);
         node->token_count = 1;
         node->token[0] = copy(token);
+        token = scanner.nextToken();
     }
     else if(token.t_type == equals_tk){
         node->children.resize(1);
         node->child_count = 1;
+        node->token.resize(1);
+        node->token_count = 1;
+        node->token[0] = copy(token);
         node->children[0] = eq(depth);
     }
     else if(token.t_type == less_than_tk){
         node->children.resize(1);
         node->child_count = 1;
+        node->token.resize(1);
+        node->token_count = 1;
+        node->token[0] = copy(token);
         node->children[0] = lt(depth);
     }
     else{

@@ -29,7 +29,7 @@ FileManager::FileManager(int argc, char **argv)
         }
 
         outputFileName = fileName + ".asm";
-        outputFile.open(outputFileName, std::ios::out | std::ios::app | std::ios::trunc);
+        outputFile.open(outputFileName, std::fstream::ate | std::fstream::out | std::fstream::in | std::fstream::app);
         errorCheckHelper();
 
     }
@@ -44,7 +44,7 @@ FileManager::FileManager(int argc, char **argv)
             exit(EXIT_FAILURE);
         }
         outputFileName = fileName + ".asm";
-        outputFile.open(outputFileName, std::ios::out | std::ios::app | std::ios::trunc);
+        outputFile.open(outputFileName, std::fstream::ate | std::fstream::out | std::fstream::in | std::fstream::app);
         errorCheckHelper();
     }
 }
@@ -62,6 +62,10 @@ FileManager::~FileManager() {
     if(tempFile){
         inputFile.close();
         std::remove(inputFileName.c_str());
+    }
+    else{
+        inputFile.close();
+        outputFile.close();
     }
 }
 bool isEmpty(std::fstream& file){
